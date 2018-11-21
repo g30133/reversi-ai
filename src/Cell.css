@@ -1,0 +1,13 @@
+.cell {
+    background-color: green;
+}
+
+.xMark {
+    background-image: url('./black.png');
+    background-size: cover;
+  }
+  
+.oMark {
+    background-image: url('./white.png');
+    background-size: cover;
+}
