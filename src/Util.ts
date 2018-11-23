@@ -27,7 +27,8 @@ class Util {
         captures = captures.concat(Util.capture(board, mark, rowIx, colIx, 1, 0))
         captures = captures.concat(Util.capture(board, mark, rowIx, colIx, 0, -1))
         captures = captures.concat(Util.capture(board, mark, rowIx, colIx, -1, -1))
-//        console.log('CAPTURES:::(' + JSON.stringify(captures) + ')')
+        console.log('CAPTURES:::(' + JSON.stringify(captures) + ')')
+        
         return captures
     }
 
@@ -37,7 +38,7 @@ class Util {
             const nextRowIx = rowIx + rowDelta * i
             const nextColIx = colIx + colDelta * i
             const nextValue = board[Util.IxFromRowCol(nextRowIx, nextColIx)]
-            console.log('nextRowIx:' + nextRowIx + ' nextColIx:' + nextColIx + ' boardValue:' + nextValue + ' mark:' + mark)
+            // console.log('nextRowIx:' + nextRowIx + ' nextColIx:' + nextColIx + ' boardValue:' + nextValue + ' mark:' + mark)
             if(Util.isOnBoard(nextRowIx, nextColIx) && board[Util.IxFromRowCol(rowIx, colIx)] === '') {
                 if(nextValue === '') {
 //                    console.log('NEXT VALUE IS EMPTY!')
@@ -45,7 +46,7 @@ class Util {
                     break
                 }
                 else if(nextValue === mark) {
-                    console.log('NEXT VALUE IS SAME MARK!')
+                    // console.log('NEXT VALUE IS SAME MARK!')
                     if(captureLine.length > 0) {
                         captureLine = captureLine.concat({r: rowIx, c: colIx})
                     }
@@ -55,18 +56,19 @@ class Util {
                     captureLine = captureLine.concat({r: nextRowIx, c: nextColIx})
                 }
             } else {
-                console.log('GOES OUT OF BOARD!!!')
+                // console.log('GOES OUT OF BOARD!!!')
                 captureLine = []
                 break
             }
 
             if(i === C.BOARD_NUM_COLS-1) {
-                console.log('THE LAST I!!!')
+                // console.log('THE LAST I!!!')
                 captureLine = []
                 break
             }
         }
-        console.log('CAPTURED(' + rowDelta + ':' + colDelta + '):' + JSON.stringify(captureLine))
+        // console.log('CAPTURED(' + rowDelta + ':' + colDelta + '):' + JSON.stringify(captureLine))
+        // console.log(captureLine)
         return captureLine
     }
 
@@ -78,8 +80,16 @@ class Util {
     public static evaluateBoardFor(board:string[], maximizerToken:string) {
         let score = 0
         const parityScore = Util.parityScore(board, maximizerToken)
-        
+        const mobilityScore = Util.mobilityScore(board, maximizerToken)
+        const cornerScore = Util.cornerScore(board, maximizerToken)
+
+        // console.log('parityScore:' + parityScore)
+        // console.log('mobilityScore:' + mobilityScore)
+        // console.log('cornerScore:' + cornerScore)
+
         score += parityScore
+        score += mobilityScore
+        score += cornerScore
         return score
     }
 
@@ -87,23 +97,34 @@ class Util {
         const otherToken = maximizerToken == 'X' ? 'O' : 'X'
         const numMax = Util.getNumCoinsFor(board, maximizerToken)
         const numMin = Util.getNumCoinsFor(board, otherToken)
-        console.log('numMin:' + numMin + ' numMax:' + numMax)
 
         const parityScore = 100 * (numMax - numMin) / (numMax + numMin)
-        console.log('parityScore:' + parityScore)
         return parityScore
     }
 
     public static mobilityScore(board:string[], maximizerToken:string) {
+        const otherToken = maximizerToken == 'X' ? 'O' : 'X'
+        let numMax = Util.getNumMovesFor(board, maximizerToken)
+        let numMin = Util.getNumMovesFor(board, otherToken)
+        console.log('numMax:' + numMax)
+        console.log('numMin:' + numMin)
+
         let mobilityScore = 0
+        if(numMax + numMin !== 0) {
+            mobilityScore = 100 * (numMax - numMin) / (numMax + numMin)
+        }
         return mobilityScore
     }
 
     public static cornerScore(board:string[], maximizerToken:string) {
-        let cornerScore = 0
+        const otherToken = maximizerToken == 'X' ? 'O' : 'X'
+        let numMax = Util.getNumCornersFor(board, maximizerToken)
+        let numMin = Util.getNumCornersFor(board, otherToken)
+        const cornerScore = 100 * (numMax - numMin) / (numMax + numMin)
         return cornerScore
     }
 
+    //For parity
     public static getNumCoinsFor(board:string[], token:string) {
         let numCoins = 0
         for(const cell of board) {
@@ -112,6 +133,149 @@ class Util {
             }
         }
         return numCoins
+    }
+
+    //For mobility
+    public static getNumMovesFor(board:string[], token:string) {
+        let numMoves = 0
+        Util.dumpBoard(board)
+        for(let boardIx = 0; boardIx < board.length; boardIx++) {
+            console.log('boardIx:' + boardIx)
+            // console.log('rowIx:' + Math.floor(boardIx/C.BOARD_NUM_COLS))
+            // console.log('colIx:' + boardIx%C.BOARD_NUM_COLS)
+            const captures = Util.captures(board, token, Math.floor(boardIx/C.BOARD_NUM_COLS), boardIx%C.BOARD_NUM_COLS)
+            console.log('captureslen:' + captures.length)
+            if(captures.length > 0) {
+                numMoves++
+            }
+            console.log('numMoves:' + numMoves)
+        }
+        return numMoves
+    }
+
+    public static getNumCornersFor(board:string[], token:string) {
+        let numCorners = 0
+        if(board[0] == token) {
+            numCorners++
+        }
+        if(board[7] == token) {
+            numCorners++
+        }
+        if(board[56] == token) {
+            numCorners++
+        }
+        if(board[63] == token) {
+            numCorners++
+        }
+        return numCorners
+    }
+
+    public static getNextMoves(board:string[], token:string) {
+        const nextMovesIx = []
+        for(let boardIx = 0; boardIx < board.length; boardIx++) {
+            const captures = Util.captures(board, token, Math.floor(boardIx/C.BOARD_NUM_COLS), boardIx%C.BOARD_NUM_COLS)
+            if(captures.length > 0) {
+                nextMovesIx.push(boardIx)
+            }
+        }
+        return nextMovesIx
+    }
+
+    public static isGameOver(board:string[]) {
+        for(const index of board) {
+            if(board[index] == '') {
+                return false
+            }
+        }
+        return true
+    }
+
+
+    public static deepcopyBoard(board:string[]) {
+        const newBoard = []
+        for (let i = 0; i < board.length; i++) {
+            newBoard[i] = (board[i])
+        }
+        return newBoard
+    }
+
+    public static moveOnBoard(board:string[], cellIx:number, token:string) {
+        const newBoard = Util.deepcopyBoard(board)
+
+        if (newBoard[cellIx] == '') {
+            newBoard[cellIx] = token
+        }            
+
+        return newBoard
+    }
+
+    public static moveOnBoardWithoutCopy(board:string[], cellIx:number, token:string) {
+        //const newBoard = Util.deepcopyBoard(board)
+
+        if (board[cellIx] == '') {
+            board[cellIx] = token
+        }  
+
+        return board
+    }
+
+    public static unmoveOnBoardWithoutCopy(board:string[], cellIx:number, token:string) {
+        // TODO
+        if(board[cellIx] == token) {
+            board[cellIx] = ''
+        }
+        return board
+    }
+
+    public static minimax(board:string[], depth:number, isMaximizer:Boolean, maximizerToken:string) {
+        let value = 0
+
+        if(depth == 0 || Util.isGameOver(board)) {
+            value = Util.evaluateBoardFor(board, maximizerToken)
+        }
+        else {
+            if(isMaximizer) {
+                value = -Infinity
+                const nextMoves = Util.getNextMoves(board, maximizerToken)
+                for(let move of nextMoves) {
+                    const newBoard = this.moveOnBoard(board, move, maximizerToken)
+                    const returnValue = Util.minimax(newBoard, depth-1, false, maximizerToken)
+                    if(returnValue > value) {
+                        value = returnValue
+                    }
+                }
+            }
+            else {
+                value = -Infinity
+                const minimizerToken = (maximizerToken == 'X') ? 'O' : 'X'
+                const nextMoves = Util.getNextMoves(board, minimizerToken)
+                for(let move of nextMoves) {
+                    const newBoard = this.moveOnBoard(board, move, minimizerToken)
+                    const returnValue = Util.minimax(newBoard, depth-1, true, maximizerToken)
+                    if(returnValue < value) {
+                        value = returnValue
+                    }
+                }
+            }
+        }
+        return value
+    }
+
+    public static minimax_search(board:string[], depth:number, maximizerToken:string) {
+        let value = -Infinity
+        let cellIx = -1
+        const nextMoves = Util.getNextMoves(board, maximizerToken)
+        for(const nextMove of nextMoves) {
+            console.log('nextMove:' + nextMove)
+            const returnValue = Util.minimax(board, depth-1, false, maximizerToken)
+            console.log('returnValue:')
+            if(returnValue > value) {
+                value = returnValue
+                cellIx = nextMove
+            }
+        }
+
+        return cellIx
     }
 }
 

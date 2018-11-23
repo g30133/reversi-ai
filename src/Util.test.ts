@@ -119,11 +119,58 @@ describe.only('util helper functions', () => {
         Util.dumpBoard(board)
     })
 
+    it('testing boardevaluation', () => {
+        board[0] = 'X'
+        expect(Util.evaluateBoardFor(board, 'X')).toBe(200)
+    })
+
     it('testing parityScore', () => {
         board[0] = 'X'
-        // board[1] = 'X'
-        // board[2] = 'O'
         expect(Util.parityScore(board, 'X')).toBe(100)
+        board[1] = 'O'
+        expect(Util.parityScore(board, 'X')).toBe(0)
+        board[2] = 'X'
+        board[3] = 'X'
+        expect(Util.parityScore(board, 'X')).toBe(50)
+    })
+
+    it('testing getNumMovesFor', () => {
+        board[9] = 'O'
+        board[10] = 'O'
+        board[11] = 'O'
+        board[8] = 'X'
+
+        expect(Util.getNumMovesFor(board, 'X')).toBe(1)
+    })
+
+    it('testing mobilityScore', () => {
+        board[9] = 'O'
+        board[10] = 'O'
+        board[11] = 'O'
+        board[8] = 'X'
+        expect(Util.mobilityScore(board, 'X')).toBe(100)
+    })
+
+    it('testing cornerScore', () => {
+        board[0] = 'X'
+        expect(Util.cornerScore(board, 'X')).toBe(100)
+    })
+
+    it('testing getNextMoves', () => {
+        board[10] = 'O'
+        board[11] = 'O'
+        board[12] = 'O'
+        board[9] = 'X'
+        board[4] = 'X'
+        expect(Util.getNextMoves(board, 'X')).toEqual([13, 18, 20])
+    })
+
+    it.only('testing minimax', () => {
+        board[27] = 'X'
+        board[28] = 'O'
+        board[35] = 'O' 
+        board[36] = 'X'
+        expect(Util.minimax_search(board, 1, 'X')).toBe(29)
     })
 
 })
