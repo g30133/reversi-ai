@@ -58,6 +58,44 @@ class App extends React.Component<any, AppState> {
           board: newBoard,
           xTurn: !prevState.xTurn
         }
+      },
+      () => {
+        console.log('ai move')
+        if(this.state.winner == '') {
+          if(this.state.xTurn == false) {
+            const aiIndex = Util.aiMove(this.state.board, 4, 'O')
+            this.setState((prevState) => {
+              const newBoard = Util.deepcopyBoard(prevState.board)              
+              const aiCaptures = Util.captures(prevState.board, 'O',
+              Math.floor(aiIndex/C.BOARD_NUM_COLS), aiIndex%C.BOARD_NUM_COLS)
+
+              console.log('CAPTURED:' + JSON.stringify(aiCaptures))
+
+
+              for(const aiCapture of aiCaptures) {
+                const capturedIndex = Util.IxFromRowCol(aiCapture.r, aiCapture.c)
+                newBoard[capturedIndex] = 'O'
+              }
+
+//              newBoard[aiIndex] = 'O'
+
+              // const gameOver = Util.isGameOver(prevState.board)
+              // let winner = ''
+              // if(gameOver) {
+              //   if(prevState.xTurn) {
+              //     winner = 'X'
+              //   } else {
+              //     winner = 'O'
+              //   }
+              // }
+
+              return {
+                board: newBoard,
+                xTurn:true,
+              }
+            })
+          }
+        }
       })
     } else {
       console.log('THATS A BAD MOVE')

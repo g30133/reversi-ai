@@ -27,7 +27,7 @@ class Util {
         captures = captures.concat(Util.capture(board, mark, rowIx, colIx, 1, 0))
         captures = captures.concat(Util.capture(board, mark, rowIx, colIx, 0, -1))
         captures = captures.concat(Util.capture(board, mark, rowIx, colIx, -1, -1))
-        console.log('CAPTURES:::(' + JSON.stringify(captures) + ')')
+        // console.log('CAPTURES:::(' + JSON.stringify(captures) + ')')
         
         return captures
     }
@@ -88,8 +88,12 @@ class Util {
         // console.log('cornerScore:' + cornerScore)
 
         score += parityScore
+        console.log('returning evaluate score:' + score)
         score += mobilityScore
+        console.log('returning evaluate score:' + score)
         score += cornerScore
+        console.log('cornerScore:' + cornerScore)
+        console.log('returning evaluate score:' + score)
         return score
     }
 
@@ -106,8 +110,8 @@ class Util {
         const otherToken = maximizerToken == 'X' ? 'O' : 'X'
         let numMax = Util.getNumMovesFor(board, maximizerToken)
         let numMin = Util.getNumMovesFor(board, otherToken)
-        console.log('numMax:' + numMax)
-        console.log('numMin:' + numMin)
+        // console.log('numMax:' + numMax)
+        // console.log('numMin:' + numMin)
 
         let mobilityScore = 0
         if(numMax + numMin !== 0) {
@@ -120,7 +124,10 @@ class Util {
         const otherToken = maximizerToken == 'X' ? 'O' : 'X'
         let numMax = Util.getNumCornersFor(board, maximizerToken)
         let numMin = Util.getNumCornersFor(board, otherToken)
-        const cornerScore = 100 * (numMax - numMin) / (numMax + numMin)
+        let cornerScore = 0
+        if(numMax + numMin !== 0) {
+            cornerScore = 100 * (numMax - numMin) / (numMax + numMin)
+        }
         return cornerScore
     }
 
@@ -140,15 +147,15 @@ class Util {
         let numMoves = 0
         Util.dumpBoard(board)
         for(let boardIx = 0; boardIx < board.length; boardIx++) {
-            console.log('boardIx:' + boardIx)
+            // console.log('boardIx:' + boardIx)
             // console.log('rowIx:' + Math.floor(boardIx/C.BOARD_NUM_COLS))
             // console.log('colIx:' + boardIx%C.BOARD_NUM_COLS)
             const captures = Util.captures(board, token, Math.floor(boardIx/C.BOARD_NUM_COLS), boardIx%C.BOARD_NUM_COLS)
-            console.log('captureslen:' + captures.length)
+            // console.log('captureslen:' + captures.length)
             if(captures.length > 0) {
                 numMoves++
             }
-            console.log('numMoves:' + numMoves)
+            // console.log('numMoves:' + numMoves)
         }
         return numMoves
     }
@@ -232,6 +239,7 @@ class Util {
 
         if(depth == 0 || Util.isGameOver(board)) {
             value = Util.evaluateBoardFor(board, maximizerToken)
+            console.log('evaluating board:' + value)
         }
         else {
             if(isMaximizer) {
@@ -268,15 +276,21 @@ class Util {
         for(const nextMove of nextMoves) {
             console.log('nextMove:' + nextMove)
             const returnValue = Util.minimax(board, depth-1, false, maximizerToken)
-            console.log('returnValue:')
+            console.log('returnValue:' + returnValue)
             if(returnValue > value) {
                 value = returnValue
                 cellIx = nextMove
             }
         }
 
+        console.log('returning cellIndex:' + cellIx) 
         return cellIx
     }
+
+    public static aiMove(board:string[], depth:number, aiToken:string) {
+        return Util.minimax_search(board, depth, aiToken)
+    }
 }
+
 
 export default Util

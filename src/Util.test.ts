@@ -170,7 +170,7 @@ describe.only('util helper functions', () => {
         board[28] = 'O'
         board[35] = 'O' 
         board[36] = 'X'
-        expect(Util.minimax_search(board, 1, 'X')).toBe(29)
+        expect(Util.minimax_search(board, 1, 'X')).toBe(20)
     })
 
 })
